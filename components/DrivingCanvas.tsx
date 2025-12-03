@@ -299,8 +299,21 @@ const DrivingCanvas: React.FC<DrivingCanvasProps> = ({
         obs.points.forEach((p, i) => { if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y); });
         ctx.stroke();
       } else if (obs.type === 'target') {
+         // Highlight target points (like the inner corner for Right Angle Turn)
          ctx.fillStyle = '#ef4444';
-         obs.points.forEach(p => ctx.fillRect(p.x - 3, p.y - 3, 6, 6));
+         obs.points.forEach(p => {
+             ctx.beginPath();
+             ctx.arc(p.x, p.y, 4, 0, Math.PI*2);
+             ctx.fill();
+
+             // Pulsing ring
+             const pulse = (Math.sin(Date.now() / 200) + 1) / 2;
+             ctx.beginPath();
+             ctx.strokeStyle = `rgba(239, 68, 68, ${1-pulse})`;
+             ctx.lineWidth = 2;
+             ctx.arc(p.x, p.y, 10 + pulse * 10, 0, Math.PI*2);
+             ctx.stroke();
+         });
       }
     });
 
@@ -391,6 +404,14 @@ const DrivingCanvas: React.FC<DrivingCanvasProps> = ({
         }
         ctx.shadowBlur = 0;
     }
+
+    // --- RIGHT DOOR HANDLE MARKER (Crucial for Right Angle Turn) ---
+    // Right side is +Y in car local coords
+    // Position: Just slightly forward of center (front door handle)
+    ctx.fillStyle = '#3b82f6'; // Bright blue dot
+    ctx.beginPath();
+    ctx.arc(5, CAR_WIDTH/2 - 2, 3, 0, Math.PI*2);
+    ctx.fill();
 
     // Wheels
     ctx.fillStyle = '#1e293b'; 

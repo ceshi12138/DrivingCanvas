@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { CarState, GameMap, Gear, Difficulty, BlinkerState } from './types';
-import { MAP_REVERSE_PARKING, MAP_SIDE_PARKING, MAP_CURVE, MAP_RIGHT_ANGLE_TURN } from './constants';
+import { MAP_REVERSE_PARKING, MAP_SIDE_PARKING, MAP_CURVE, MAP_RIGHT_ANGLE_TURN, CAR_WIDTH } from './constants';
 import DrivingCanvas from './components/DrivingCanvas';
 import Controls from './components/Controls';
-import { Car, Map as MapIcon, ChevronRight, RotateCcw, Trophy, AlertTriangle, Gauge } from 'lucide-react';
+import DriverView from './components/DriverView';
+import { Car, Map as MapIcon, ChevronRight, RotateCcw, Trophy, AlertTriangle, Gauge, CheckCircle2 } from 'lucide-react';
 
 const MAPS = [MAP_REVERSE_PARKING, MAP_SIDE_PARKING, MAP_CURVE, MAP_RIGHT_ANGLE_TURN];
 
@@ -28,6 +29,7 @@ const App: React.FC = () => {
   const [resetTrigger, setResetTrigger] = useState(0);
   const [examResult, setExamResult] = useState<'passed' | 'failed' | null>(null);
   const [failReason, setFailReason] = useState<string>("");
+  const [alignmentTip, setAlignmentTip] = useState<boolean>(false);
 
   const handleReset = () => {
     setControlState(prev => ({ 
@@ -41,6 +43,7 @@ const App: React.FC = () => {
     setExamResult(null);
     setFailReason("");
     setResetTrigger(prev => prev + 1);
+    setAlignmentTip(false);
   };
 
   const handleCrash = (reason: string) => {
@@ -53,6 +56,38 @@ const App: React.FC = () => {
     if (examResult) return;
     setExamResult('passed');
   };
+
+  // Logic to check Point Alignment (Door Handle vs Inner Corner)
+  // This is a helper for learning
+  useEffect(() => {
+     if (!gameState || currentMap.name !== '直角转弯 (右转)') {
+         setAlignmentTip(false);
+         return;
+     }
+
+     const target = currentMap.obstacles.find(o => o.type === 'target');
+     if (!target) return;
+     const targetPoint = target.points[0];
+
+     // Calculate current world position of Right Door Handle
+     // Car Center (x,y), Angle A
+     // Handle Offset: x +5, y +17 (CAR_WIDTH/2)
+     const cos = Math.cos(gameState.angle);
+     const sin = Math.sin(gameState.angle);
+     const hx = gameState.x + (5 * cos - (CAR_WIDTH/2) * sin);
+     const hy = gameState.y + (5 * sin + (CAR_WIDTH/2) * cos);
+
+     // Check distance
+     const dist = Math.hypot(hx - targetPoint.x, hy - targetPoint.y);
+     
+     // If extremely close (aligned)
+     if (dist < 15 && !gameState.crashed) {
+         setAlignmentTip(true);
+     } else {
+         setAlignmentTip(false);
+     }
+
+  }, [gameState, currentMap]);
 
   return (
     <div className="h-screen w-screen bg-gray-100 flex flex-col md:flex-row overflow-hidden text-slate-800">
@@ -131,11 +166,22 @@ const App: React.FC = () => {
       {/* Main Game Area */}
       <div className="flex-1 relative flex flex-col items-center justify-center p-2 md:p-6 bg-slate-200">
         
+        {/* Driver View PiP */}
+        {gameState && <DriverView carState={gameState} map={currentMap} />}
+
         {/* Game Stats Overlay */}
         {gameState && (
             <div className="absolute top-4 left-4 md:left-8 bg-white/90 backdrop-blur rounded-lg p-3 text-xs md:text-sm border border-gray-200 font-mono text-gray-600 shadow-sm pointer-events-none z-10 flex gap-4">
                 <span>速度: <span className="font-bold text-slate-900">{(Math.abs(gameState.speed) * 30).toFixed(1)}</span> km/h</span>
                 <span>角度: <span className="font-bold text-slate-900">{(gameState.angle * 57.29 % 360).toFixed(0)}</span>°</span>
+            </div>
+        )}
+
+        {/* Alignment Tip Toast */}
+        {alignmentTip && (
+            <div className="absolute top-20 left-1/2 -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-full shadow-lg z-40 animate-bounce flex items-center gap-2 font-bold text-sm">
+                <CheckCircle2 size={18} />
+                点位已对齐 (门把手-内角)
             </div>
         )}
 
