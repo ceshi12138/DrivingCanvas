@@ -1,0 +1,5 @@
+{
+  "name": "Kemu2 Master - 科目二模拟驾校",
+  "description": "A comprehensive driving test simulation for Chinese Subject 2 (Kemu 2). Practice Reverse Parking, Side Parking, and Curve Driving with a physics-based top-down view and AI-powered instructor feedback.",
+  "requestFramePermissions": []
+}
