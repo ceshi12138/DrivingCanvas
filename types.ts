@@ -13,6 +13,7 @@ export enum ExamProject {
 }
 
 export type Difficulty = 'easy' | 'hard';
+export type BlinkerState = 'off' | 'left' | 'right';
 
 export interface Point {
   x: number;

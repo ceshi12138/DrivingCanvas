@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CarState, GameMap, Gear, Difficulty } from './types';
+import { CarState, GameMap, Gear, Difficulty, BlinkerState } from './types';
 import { MAP_REVERSE_PARKING, MAP_SIDE_PARKING, MAP_CURVE, MAP_RIGHT_ANGLE_TURN } from './constants';
 import DrivingCanvas from './components/DrivingCanvas';
 import Controls from './components/Controls';
@@ -10,11 +10,18 @@ const MAPS = [MAP_REVERSE_PARKING, MAP_SIDE_PARKING, MAP_CURVE, MAP_RIGHT_ANGLE_
 const App: React.FC = () => {
   const [currentMap, setCurrentMap] = useState<GameMap>(MAPS[0]);
   const [difficulty, setDifficulty] = useState<Difficulty>('hard');
-  const [controlState, setControlState] = useState({
+  const [controlState, setControlState] = useState<{
+    gas: boolean;
+    brake: boolean;
+    steering: number;
+    gear: Gear;
+    blinker: BlinkerState;
+  }>({
     gas: false,
     brake: false,
     steering: 0,
-    gear: Gear.P
+    gear: Gear.P,
+    blinker: 'off'
   });
 
   const [gameState, setGameState] = useState<CarState | null>(null);
@@ -23,7 +30,14 @@ const App: React.FC = () => {
   const [failReason, setFailReason] = useState<string>("");
 
   const handleReset = () => {
-    setControlState(prev => ({ ...prev, gear: Gear.P, steering: 0, gas: false, brake: false }));
+    setControlState(prev => ({ 
+        ...prev, 
+        gear: Gear.P, 
+        steering: 0, 
+        gas: false, 
+        brake: false, 
+        blinker: 'off' 
+    }));
     setExamResult(null);
     setFailReason("");
     setResetTrigger(prev => prev + 1);
@@ -178,6 +192,8 @@ const App: React.FC = () => {
                 setBrake={(val) => setControlState(prev => ({...prev, brake: val}))}
                 gear={controlState.gear}
                 setGear={(val) => setControlState(prev => ({...prev, gear: val}))}
+                blinker={controlState.blinker}
+                setBlinker={(val) => setControlState(prev => ({...prev, blinker: val}))}
                 onReset={handleReset}
             />
         </div>

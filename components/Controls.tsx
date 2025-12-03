@@ -1,6 +1,6 @@
 import React from 'react';
-import { Gear } from '../types';
-import { Settings, RefreshCw } from 'lucide-react';
+import { Gear, BlinkerState } from '../types';
+import { RefreshCw, ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface ControlsProps {
   steering: number;
@@ -11,6 +11,8 @@ interface ControlsProps {
   setBrake: (val: boolean) => void;
   gear: Gear;
   setGear: (g: Gear) => void;
+  blinker: BlinkerState;
+  setBlinker: (b: BlinkerState) => void;
   onReset: () => void;
 }
 
@@ -19,6 +21,7 @@ const Controls: React.FC<ControlsProps> = ({
   gas, setGas,
   brake, setBrake,
   gear, setGear,
+  blinker, setBlinker,
   onReset
 }) => {
   return (
@@ -41,6 +44,23 @@ const Controls: React.FC<ControlsProps> = ({
             </button>
           ))}
         </div>
+        
+        {/* Blinker Controls */}
+        <div className="flex bg-slate-100 rounded-lg p-1 shadow-inner gap-1">
+            <button
+                onClick={() => setBlinker(blinker === 'left' ? 'off' : 'left')}
+                className={`p-2 rounded-md transition-all ${blinker === 'left' ? 'bg-amber-100 text-amber-500 animate-pulse' : 'text-gray-400'}`}
+            >
+                <ArrowLeft size={20} />
+            </button>
+            <button
+                onClick={() => setBlinker(blinker === 'right' ? 'off' : 'right')}
+                className={`p-2 rounded-md transition-all ${blinker === 'right' ? 'bg-amber-100 text-amber-500 animate-pulse' : 'text-gray-400'}`}
+            >
+                <ArrowRight size={20} />
+            </button>
+        </div>
+
         <button 
           onClick={onReset}
           className="p-2 bg-slate-100 text-slate-500 rounded-full hover:bg-blue-100 hover:text-blue-600 transition-colors"

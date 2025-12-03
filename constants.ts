@@ -149,47 +149,52 @@ export const MAP_CURVE: GameMap = {
   ]
 };
 
-// 4. Right Angle Turn
-// Lane Width 3.5m ~ 60px. Left Wall x=300, Right Wall x=360.
-// Center = 330.
+// 4. Right Angle Turn (Right Turn)
+// Lane Width 3.5m ~ 60px.
+// Vertical Lane: x=300 to x=360.
+// Horizontal Lane (Exit Right): y=240 to y=300.
+// Inner Corner (Pivot): (360, 300)
+// Outer Corner: (300, 240)
 export const MAP_RIGHT_ANGLE_TURN: GameMap = {
-  name: "直角转弯",
+  name: "直角转弯 (右转)",
   project: ExamProject.RightAngleTurn,
-  startPosition: { x: 330, y: 550, angle: -Math.PI / 2 }, // Centered in lane (300+360)/2
-  description: "最易压角项目。需贴外线行驶，门把手对齐内角打死。",
+  startPosition: { x: 330, y: 550, angle: -Math.PI / 2 }, // Centered in vertical lane
+  description: "右转弯。需贴左侧（外侧）边线行驶，门把手/后视镜对齐内角右打死。",
   tips: [
-    "准备：靠右行驶，右车身距边线30cm",
-    "点位：左后视镜/门把手与内直角平齐",
-    "动作：向左打死方向盘",
-    "完成：车身摆正后回正"
+    "准备：靠左行驶，车身距左边线30cm",
+    "打灯：开启右转向灯",
+    "点位：右后视镜/门把手与内直角(右侧)平齐",
+    "动作：向右打死方向盘",
+    "完成：车身摆正后回正，关闭转向灯"
   ],
   targetZone: [
-    { x: 50, y: 240 }, { x: 100, y: 240 }, { x: 100, y: 300 }, { x: 50, y: 300 }
+    { x: 500, y: 240 }, { x: 550, y: 240 }, { x: 550, y: 300 }, { x: 500, y: 300 }
   ],
   obstacles: [
-    // Outer Wall (Top and Right)
+    // Outer Wall (Left side then Top side)
+    // Starts bottom left, goes up to turn, goes right
     {
       type: 'line',
       points: [
-        { x: 360, y: 600 }, // Start Right Wall
-        { x: 360, y: 240 }, // Corner Outer
-        { x: 50, y: 240 }   // End Top Wall
+        { x: 300, y: 600 }, // Bottom Left
+        { x: 300, y: 240 }, // Top Left Corner (Outer)
+        { x: 600, y: 240 }  // Top Right
       ]
     },
-    // Inner Wall (Bottom and Left)
-    // Lane width 60px
+    // Inner Wall (Right side then Bottom side)
+    // Starts bottom right, goes up to inner corner, goes right
     {
       type: 'line',
       points: [
-        { x: 300, y: 600 }, // Start Left Wall
-        { x: 300, y: 300 }, // Corner Inner Start
-        { x: 50, y: 300 }   // End Bottom Wall
+        { x: 360, y: 600 }, // Bottom Right
+        { x: 360, y: 300 }, // Inner Corner
+        { x: 600, y: 300 }  // Bottom Right Exit
       ]
     },
     // The Inner Corner Marker for reference
     {
       type: 'target', 
-      points: [{x: 300, y: 300}]
+      points: [{x: 360, y: 300}]
     }
   ]
 };
