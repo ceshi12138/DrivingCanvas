@@ -12,6 +12,8 @@ export enum ExamProject {
   RightAngleTurn = 'RightAngleTurn' // 直角转弯
 }
 
+export type Difficulty = 'easy' | 'hard';
+
 export interface Point {
   x: number;
   y: number;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Gear } from '../types';
-import { Settings, RefreshCw, Power } from 'lucide-react';
+import { Settings, RefreshCw } from 'lucide-react';
 
 interface ControlsProps {
   steering: number;
@@ -22,19 +22,19 @@ const Controls: React.FC<ControlsProps> = ({
   onReset
 }) => {
   return (
-    <div className="w-full max-w-[600px] bg-gray-800 p-4 rounded-xl border-t border-gray-700 flex flex-col gap-4 shadow-2xl">
+    <div className="w-full max-w-[600px] bg-white p-5 border-t border-gray-200 flex flex-col gap-5 shadow-sm rounded-b-xl">
       
       {/* Top Row: Gears and Reset */}
       <div className="flex justify-between items-center">
-        <div className="flex bg-gray-900 rounded-lg p-1">
+        <div className="flex bg-slate-100 rounded-lg p-1 shadow-inner">
           {[Gear.P, Gear.R, Gear.N, Gear.D].map((g) => (
             <button
               key={g}
               onClick={() => setGear(g)}
-              className={`px-4 py-2 rounded-md font-bold text-sm transition-all ${
+              className={`px-5 py-2 rounded-md font-bold text-sm transition-all ${
                 gear === g 
-                  ? 'bg-blue-600 text-white shadow-lg scale-105' 
-                  : 'text-gray-400 hover:text-white'
+                  ? 'bg-white text-blue-600 shadow-sm border border-gray-200 scale-105' 
+                  : 'text-gray-400 hover:text-gray-600'
               }`}
             >
               {g}
@@ -43,21 +43,24 @@ const Controls: React.FC<ControlsProps> = ({
         </div>
         <button 
           onClick={onReset}
-          className="p-2 bg-red-600/20 text-red-400 rounded-full hover:bg-red-600 hover:text-white transition-colors"
-          title="Reset Car"
+          className="p-2 bg-slate-100 text-slate-500 rounded-full hover:bg-blue-100 hover:text-blue-600 transition-colors"
+          title="重置车辆"
         >
           <RefreshCw size={20} />
         </button>
       </div>
 
       {/* Middle: Steering Wheel Slider */}
-      <div className="flex flex-col items-center justify-center space-y-2">
-        <div className="relative w-full h-12 flex items-center">
+      <div className="flex flex-col items-center justify-center space-y-1">
+        <div className="relative w-full h-14 flex items-center group">
           {/* Wheel track */}
-          <div className="absolute w-full h-2 bg-gray-700 rounded-full"></div>
-          {/* Center Mark */}
-          <div className="absolute left-1/2 -translate-x-1/2 w-1 h-4 bg-yellow-500/50"></div>
+          <div className="absolute w-full h-3 bg-slate-200 rounded-full shadow-inner"></div>
           
+          {/* Ticks */}
+          <div className="absolute left-1/2 -translate-x-1/2 w-0.5 h-5 bg-slate-400"></div>
+          <div className="absolute left-1/4 -translate-x-1/2 w-0.5 h-3 bg-slate-300"></div>
+          <div className="absolute left-3/4 -translate-x-1/2 w-0.5 h-3 bg-slate-300"></div>
+
           <input
             type="range"
             min="-1"
@@ -65,59 +68,57 @@ const Controls: React.FC<ControlsProps> = ({
             step="0.01"
             value={steering}
             onChange={(e) => setSteering(parseFloat(e.target.value))}
-            className="w-full z-10 opacity-0 cursor-pointer h-12 absolute"
-            // Reset to center on release is NOT done in real cars for slow maneuvers, 
-            // but for gameplay it might be annoying. Let's keep it sticky (no auto-reset).
+            className="w-full z-10 opacity-0 cursor-pointer h-14 absolute"
           />
           
-          {/* Visual Thumb */}
+          {/* Visual Thumb (Steering Wheel) */}
           <div 
-            className="absolute h-10 w-10 bg-blue-500 rounded-full shadow-lg border-2 border-white flex items-center justify-center pointer-events-none transition-transform duration-75"
+            className="absolute h-12 w-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full shadow-lg border-2 border-white flex items-center justify-center pointer-events-none transition-transform duration-75"
             style={{ 
                 left: `${((steering + 1) / 2) * 100}%`,
-                transform: `translateX(-50%) rotate(${steering * 90}deg)`
+                transform: `translateX(-50%) rotate(${steering * 540}deg)` // Rotate 1.5 turns (540 deg)
             }}
           >
-             <Settings className="text-white w-6 h-6 animate-spin-slow" />
+             <div className="w-8 h-8 rounded-full border-2 border-white/30 flex items-center justify-center">
+                <div className="w-full h-1 bg-white/50"></div>
+             </div>
           </div>
         </div>
-        <div className="flex justify-between w-full text-xs text-gray-500 font-mono">
-            <span>FULL LEFT</span>
-            <span>CENTER</span>
-            <span>FULL RIGHT</span>
+        <div className="flex justify-between w-full text-[10px] text-slate-400 font-mono tracking-widest px-1">
+            <span>左打死</span>
+            <span>回正</span>
+            <span>右打死</span>
         </div>
       </div>
 
       {/* Bottom: Pedals */}
-      <div className="flex gap-4 h-24">
+      <div className="flex gap-4 h-24 mt-2">
         <button
           className={`flex-1 rounded-xl flex flex-col items-center justify-center border-b-4 transition-all active:border-b-0 active:translate-y-1 ${
              brake 
-             ? 'bg-red-600 border-red-800 text-white shadow-[0_0_15px_rgba(220,38,38,0.6)]' 
-             : 'bg-gray-700 border-gray-900 text-gray-400'
+             ? 'bg-red-500 border-red-700 text-white shadow-lg' 
+             : 'bg-slate-200 border-slate-300 text-slate-400 hover:bg-slate-300'
           }`}
           onMouseDown={() => setBrake(true)}
           onMouseUp={() => setBrake(false)}
           onTouchStart={(e) => { e.preventDefault(); setBrake(true); }}
           onTouchEnd={(e) => { e.preventDefault(); setBrake(false); }}
         >
-          <span className="text-2xl font-black">刹车</span>
-          <span className="text-xs opacity-75">BRAKE</span>
+          <span className="text-xl font-black tracking-wider">刹车</span>
         </button>
 
         <button
           className={`flex-1 rounded-xl flex flex-col items-center justify-center border-b-4 transition-all active:border-b-0 active:translate-y-1 ${
              gas 
-             ? 'bg-green-600 border-green-800 text-white shadow-[0_0_15px_rgba(22,163,74,0.6)]' 
-             : 'bg-gray-700 border-gray-900 text-gray-400'
+             ? 'bg-green-500 border-green-700 text-white shadow-lg' 
+             : 'bg-slate-200 border-slate-300 text-slate-400 hover:bg-slate-300'
           }`}
           onMouseDown={() => setGas(true)}
           onMouseUp={() => setGas(false)}
           onTouchStart={(e) => { e.preventDefault(); setGas(true); }}
           onTouchEnd={(e) => { e.preventDefault(); setGas(false); }}
         >
-          <span className="text-2xl font-black">油门</span>
-          <span className="text-xs opacity-75">GAS</span>
+          <span className="text-xl font-black tracking-wider">油门</span>
         </button>
       </div>
     </div>

@@ -1,117 +1,114 @@
 import { ExamProject, GameMap, Gear } from './types';
 
-// Adjusted Scale: Approx 1px = 7-8cm. 
-// Car approx 4.8m x 2.4m visual footprint (incl mirrors).
-
+// Scale: 1px = ~1.5cm
+// Car: Jetta/Santana size (approx 4.5m x 1.8m)
+// Scaled: Length ~ 76px, Width ~ 34px
 export const CAR_WIDTH = 34;
-export const CAR_LENGTH = 70;
-export const WHEELBASE = 48;
-export const MAX_STEERING_ANGLE = Math.PI / 4; // 45 degrees
-export const MAX_SPEED = 1.5; // Slower, precision focused
-export const ACCELERATION = 0.04;
-export const FRICTION = 0.03;
+export const CAR_LENGTH = 76;
+export const WHEELBASE = 52;
+export const MAX_STEERING_ANGLE = Math.PI / 3.8; // Allow slightly sharper turns for tight maneuvers
+export const MAX_SPEED = 1.2; // Slow, creep speed
+export const ACCELERATION = 0.03;
+export const FRICTION = 0.04;
 
-// Helper to create walls from rects
-const createRectWall = (x: number, y: number, w: number, h: number) => {
-    return {
-        type: 'line' as const,
-        points: [
-            { x, y },
-            { x: x + w, y },
-            { x: x + w, y: y + h },
-            { x, y: y + h },
-            { x, y }
-        ]
-    };
-};
+// 1. Reverse Parking (Dao Che Ru Ku) - STRICT STANDARD
+// Garage Width = Car Width + 0.6m (~40px spacing total, 20px each side) -> 34 + 40 = 74px
+// Garage Length = Car Length + 0.7m (~46px) -> 76 + 46 = 122px
+// Road Width = 1.5 * Car Length = 1.5 * 76 = 114px
+const RP_GARAGE_W = 74;
+const RP_GARAGE_L = 122;
+const RP_ROAD_W = 120; // Slightly rounded
+const RP_CONTROL_LINE_Y = 250;
+const RP_GARAGE_Y_START = 250 + RP_ROAD_W; // Garage starts after road
 
-// 1. Reverse Parking (Dao Che Ru Ku) - TIGHTER & HARDER
-// Lane width ~1.5x car width. Garage width ~ car width + 60cm scaled.
 export const MAP_REVERSE_PARKING: GameMap = {
   name: "倒车入库",
   project: ExamProject.ReverseParking,
-  startPosition: { x: 150, y: 350, angle: 0 }, // Starting on left, facing right
-  description: "考场级难度。车库仅比车宽多60cm，需精准控制点位。",
+  startPosition: { x: 100, y: 310, angle: 0 }, // Start on left control line
+  description: "科目二核心项目。库宽仅车宽+60cm，极度考验点位。",
   tips: [
     "起点：左后视镜下沿压控制线停车",
-    "倒库：向右打死，观察右后视镜与库角距离",
-    "修整：哪边宽往哪边打",
+    "倒库：向右打死，观察右后视镜与库角30cm",
     "入库：车身平行立即回正",
-    "出库：车头盖线向左/右打死"
+    "微调：哪边宽往哪边打",
+    "出库：肩膀/车头盖线向左/右打死"
   ],
   targetZone: [
-    { x: 275, y: 150 },
-    { x: 325, y: 150 },
-    { x: 325, y: 240 },
-    { x: 275, y: 240 }
+    { x: 300 - RP_GARAGE_W/2 + 5, y: RP_GARAGE_Y_START + 10 },
+    { x: 300 + RP_GARAGE_W/2 - 5, y: RP_GARAGE_Y_START + 10 },
+    { x: 300 + RP_GARAGE_W/2 - 5, y: RP_GARAGE_Y_START + RP_GARAGE_L - 10 },
+    { x: 300 - RP_GARAGE_W/2 + 5, y: RP_GARAGE_Y_START + RP_GARAGE_L - 10 }
   ],
   obstacles: [
-    // Top boundary line (Control Line)
-    { type: 'line', points: [{ x: 50, y: 300 }, { x: 550, y: 300 }] },
+    // Top Control Line (Visual + Hitbox)
+    { type: 'line', points: [{ x: 50, y: RP_CONTROL_LINE_Y }, { x: 550, y: RP_CONTROL_LINE_Y }] },
     
-    // The Garage (Centered horizontally roughly)
-    // Garage Width: 50px (Car is 34px). Very tight.
-    // Garage Depth: 90px.
-    
-    // Garage Walls (U-shape)
-    {
-      type: 'line',
+    // Road Bottom / Garage Front Line
+    { type: 'line', points: [{ x: 50, y: RP_GARAGE_Y_START }, { x: 300 - RP_GARAGE_W/2, y: RP_GARAGE_Y_START }] },
+    { type: 'line', points: [{ x: 300 + RP_GARAGE_W/2, y: RP_GARAGE_Y_START }, { x: 550, y: RP_GARAGE_Y_START }] },
+
+    // Garage Walls (U-Shape)
+    { 
+      type: 'line', 
       points: [
-        { x: 275, y: 300 }, // Front Left
-        { x: 275, y: 150 }, // Back Left
-        { x: 325, y: 150 }, // Back Right
-        { x: 325, y: 300 }  // Front Right
+        { x: 300 - RP_GARAGE_W/2, y: RP_GARAGE_Y_START },
+        { x: 300 - RP_GARAGE_W/2, y: RP_GARAGE_Y_START + RP_GARAGE_L },
+        { x: 300 + RP_GARAGE_W/2, y: RP_GARAGE_Y_START + RP_GARAGE_L },
+        { x: 300 + RP_GARAGE_W/2, y: RP_GARAGE_Y_START }
       ]
     },
     
-    // Side limits (Simulating the road curbs)
-    { type: 'line', points: [{ x: 50, y: 400 }, { x: 550, y: 400 }] }, // Bottom road edge
-    { type: 'line', points: [{ x: 50, y: 300 }, { x: 275, y: 300 }] }, // Top road edge Left
-    { type: 'line', points: [{ x: 325, y: 300 }, { x: 550, y: 300 }] }, // Top road edge Right
+    // Road Top Boundary (Invisible wall usually, but let's draw curb)
+    { type: 'line', points: [{ x: 50, y: RP_CONTROL_LINE_Y + 10 }, { x: 550, y: RP_CONTROL_LINE_Y + 10 }] }, 
   ]
 };
 
 // 2. Side Parking (Ce Fang Ting Che)
+// Garage L = 1.5 * Car Length = 114px
+// Garage W = Car Width + 0.8m (~50px spacing) = 84px
+const SP_GARAGE_L = 120;
+const SP_GARAGE_W = 80;
+
 export const MAP_SIDE_PARKING: GameMap = {
   name: "侧方停车",
   project: ExamProject.SideParking,
-  startPosition: { x: 100, y: 450, angle: -Math.PI / 2 },
-  description: "标准库位。车头入库需压线，倒车注意对角线。",
+  startPosition: { x: 100, y: 500, angle: -Math.PI / 2 },
+  description: "标准库位。必须车头完全越过库位再倒车。",
   tips: [
-    "领线：车身距右库边线30cm",
-    "一倒：右后视镜见库角消失，右打死",
+    "领线：右车身距库边线30-50cm",
+    "一倒：右后视镜见库前角消失，右打死",
     "二倒：左后视镜见内库角，回正",
     "三倒：左后轮压库边线，左打死"
   ],
   targetZone: [
-    { x: 350, y: 150 },
-    { x: 400, y: 150 },
-    { x: 400, y: 250 },
-    { x: 350, y: 250 }
+    { x: 380, y: 150 },
+    { x: 380 + SP_GARAGE_W - 10, y: 150 },
+    { x: 380 + SP_GARAGE_W - 10, y: 150 + SP_GARAGE_L },
+    { x: 380, y: 150 + SP_GARAGE_L }
   ],
   obstacles: [
-    // Road
-    { type: 'line', points: [{ x: 50, y: 50 }, { x: 50, y: 550 }] }, // Left curb
-    { type: 'line', points: [{ x: 350, y: 50 }, { x: 350, y: 150 }] }, // Right curb top
-    { type: 'line', points: [{ x: 350, y: 250 }, { x: 350, y: 550 }] }, // Right curb bottom
+    // Left Curb (Road edge)
+    { type: 'line', points: [{ x: 50, y: 50 }, { x: 50, y: 550 }] },
     
-    // Parking Box (Inside curb)
-    // Width: 50px, Length: 100px
+    // Right Curb (Garage Side)
+    { type: 'line', points: [{ x: 380, y: 50 }, { x: 380, y: 150 }] }, // Top section
+    { type: 'line', points: [{ x: 380, y: 150 + SP_GARAGE_L }, { x: 380, y: 550 }] }, // Bottom section
+    
+    // The Garage Box
     { 
       type: 'line', 
       points: [
-          { x: 350, y: 150 }, 
-          { x: 400, y: 150 }, // Top Right
-          { x: 400, y: 250 }, // Bottom Right
-          { x: 350, y: 250 } 
+          { x: 380, y: 150 }, 
+          { x: 380 + SP_GARAGE_W, y: 150 }, // TR
+          { x: 380 + SP_GARAGE_W, y: 150 + SP_GARAGE_L }, // BR
+          { x: 380, y: 150 + SP_GARAGE_L } // BL
       ] 
-    },
-    // Dashed line logic handled in renderer via targetZone generally, but we need collision line for back
-    // { type: 'line', points: [{ x: 400, y: 150 }, { x: 400, y: 250 }] } // Back wall
+    }
   ]
 };
 
 // 3. Curve Driving (S-Curve)
+// Lane Width 3.5m ~ 60px
 export const MAP_CURVE: GameMap = {
   name: "曲线行驶",
   project: ExamProject.CurveDriving,
@@ -124,40 +121,42 @@ export const MAP_CURVE: GameMap = {
     "出弯：适时回正"
   ],
   targetZone: [
-    { x: 260, y: 20 }, { x: 340, y: 20 }, { x: 340, y: 60 }, { x: 260, y: 60 }
+    { x: 250, y: 20 }, { x: 350, y: 20 }, { x: 350, y: 60 }, { x: 250, y: 60 }
   ],
   obstacles: [
-    // Left Boundary (Complex Polygon to make a smooth-ish S)
+    // Left Boundary
     {
       type: 'line',
       points: [
         { x: 240, y: 600 },
         { x: 240, y: 450 }, // Straight start
-        { x: 140, y: 350 }, // Bulge Left
-        { x: 140, y: 250 }, 
-        { x: 260, y: 50 }   // Exit Left
+        { x: 120, y: 320 }, // Bulge Left
+        { x: 120, y: 220 }, 
+        { x: 240, y: 50 }   // Exit Left
       ]
     },
-    // Right Boundary (Narrow channel, approx 60px width)
+    // Right Boundary (Width ~60px)
     {
       type: 'line',
       points: [
         { x: 360, y: 600 },
         { x: 360, y: 450 },
-        { x: 260, y: 350 }, // Inner curve for first turn
-        { x: 260, y: 250 },
-        { x: 380, y: 50 }
+        { x: 240, y: 320 }, // Inner curve
+        { x: 240, y: 220 },
+        { x: 360, y: 50 }
       ]
     }
   ]
 };
 
-// 4. Right Angle Turn (New)
+// 4. Right Angle Turn
+// Lane Width 3.5m ~ 60px. Left Wall x=300, Right Wall x=360.
+// Center = 330.
 export const MAP_RIGHT_ANGLE_TURN: GameMap = {
   name: "直角转弯",
   project: ExamProject.RightAngleTurn,
-  startPosition: { x: 300, y: 550, angle: -Math.PI / 2 },
-  description: "看似简单最易压角。需贴外线行驶，门把手对齐内角打死。",
+  startPosition: { x: 330, y: 550, angle: -Math.PI / 2 }, // Centered in lane (300+360)/2
+  description: "最易压角项目。需贴外线行驶，门把手对齐内角打死。",
   tips: [
     "准备：靠右行驶，右车身距边线30cm",
     "点位：左后视镜/门把手与内直角平齐",
@@ -165,7 +164,7 @@ export const MAP_RIGHT_ANGLE_TURN: GameMap = {
     "完成：车身摆正后回正"
   ],
   targetZone: [
-    { x: 50, y: 250 }, { x: 100, y: 250 }, { x: 100, y: 310 }, { x: 50, y: 310 }
+    { x: 50, y: 240 }, { x: 100, y: 240 }, { x: 100, y: 300 }, { x: 50, y: 300 }
   ],
   obstacles: [
     // Outer Wall (Top and Right)
@@ -173,25 +172,24 @@ export const MAP_RIGHT_ANGLE_TURN: GameMap = {
       type: 'line',
       points: [
         { x: 360, y: 600 }, // Start Right Wall
-        { x: 360, y: 250 }, // Corner Outer
-        { x: 50, y: 250 }   // End Top Wall
+        { x: 360, y: 240 }, // Corner Outer
+        { x: 50, y: 240 }   // End Top Wall
       ]
     },
-    // Inner Wall (Bottom and Left) - Creates a 60px wide lane (Car 34px)
+    // Inner Wall (Bottom and Left)
+    // Lane width 60px
     {
       type: 'line',
       points: [
-        { x: 240, y: 600 }, // Start Left Wall
-        { x: 240, y: 370 }, // Corner Inner Start
-        { x: 240, y: 370 }, // Just a point
-        { x: 240, y: 310 }, // Inner Corner Y
-        { x: 50, y: 310 }   // End Bottom Wall
+        { x: 300, y: 600 }, // Start Left Wall
+        { x: 300, y: 300 }, // Corner Inner Start
+        { x: 50, y: 300 }   // End Bottom Wall
       ]
     },
-    // The Inner Corner "Death Point"
+    // The Inner Corner Marker for reference
     {
-      type: 'target', // Visual marker only
-      points: [{x: 240, y: 310}]
+      type: 'target', 
+      points: [{x: 300, y: 300}]
     }
   ]
 };
